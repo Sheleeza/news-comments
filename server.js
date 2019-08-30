@@ -16,11 +16,13 @@ axios.get("https://www.nytimes.com").then(function(response) {
   $("article").each(function(i, element) {
 
     var title = $(element).children().text();
+    var articleBody = $(element).children().text();
     var link = $(element).find("a").attr("href");
 
     // Save these results in an object that we'll push into the results array we defined earlier
     results.push({
       title: title,
+      articleBody: articleBody,
       link: link
     });
   });
