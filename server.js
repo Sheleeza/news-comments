@@ -7,7 +7,7 @@ const express = require('express'),
       mongoose = require('mongoose'),
       methodOverride = require('method-override');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 let app = express();
 
 app
