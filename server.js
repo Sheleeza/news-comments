@@ -1,32 +1,43 @@
 
-var cheerio = require("cheerio");
-var axios = require("axios");
+'use strict';
+const express = require('express'),
+      exphbs = require('express-handlebars'),
+      bodyParser = require('body-parser'),
+      logger = require('morgan'),
+      mongoose = require('mongoose'),
+      methodOverride = require('method-override');
 
-// Make a request via axios to grab the HTML body from the site of your choice
-axios.get("https://www.nytimes.com").then(function(response) {
+const PORT = process.env.PORT || 3000;
+let app = express();
 
-  // Load the HTML into cheerio and save it to a variable
-  // '$' becomes a shorthand for cheerio's selector commands, much like jQuery's '$'
-  var $ = cheerio.load(response.data);
+app
+    .use(bodyParser.json())
+    .use(bodyParser.urlencoded({ extended:true }))
+    .use(bodyParser.text())
+    .use(bodyParser.json({ type: 'application/vnd.api+json' }))
+    .use(methodOverride('_method'))
+    .use(logger('dev'))
+    .use(express.static(__dirname + '/public'))
+    .engine('handlebars', exphbs({ defaultLayout: 'main' }))
+    .set('view engine', 'handlebars')
+    .use(require('./controllers'));
 
-  // An empty array to save the data that we'll scrape
-  var results = [];
 
-  // Select each element in the HTML body from which you want information.
-  $("article").each(function(i, element) {
+mongoose.Promise = Promise;
+const dbURI = process.env.MONGODB_URI || "mongodb://localhost:27017/news";
 
-    var title = $(element).children().text();
-    var articleBody = $(element).children().text();
-    var link = $(element).find("a").attr("href");
-
-    // Save these results in an object that we'll push into the results array we defined earlier
-    results.push({
-      title: title,
-      articleBody: articleBody,
-      link: link
-    });
-  });
-
-  // Log the results once you've looped through each of the elements found with cheerio
-  console.log(results);
+mongoose.connect(dbURI);
+const db = mongoose.connection;
+db.on("error", function(error) {
+    console.log("Mongoose Error: ", error);
 });
+
+db.once("open", function() {
+    console.log("Mongoose connection successful.");
+    // start the server, listen on port 3000
+    app.listen(PORT, function() {
+        console.log("App running on port" + PORT);
+    });
+});
+
+module.exports = app;
